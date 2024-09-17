@@ -51,12 +51,10 @@ class PlayerSimulator:
                 if self.robots_placed >= self.total_robots_to_place:
                     logging.info("Placing phase ended. All players have placed their robots.")
                     self.current_player = 0
-                    self.current_robot_index = 0
                     self.placing_phase = False
                     self.update_package_visibility(self.placing_phase)
                     return True
                 self.current_player = (self.current_player + 1) % len(self.players)
-                self.current_robot_index = 0
                 time.sleep(0.2)  # Задержка в одну секунду
         return False
 

@@ -52,8 +52,7 @@ class Robot:
                         f"Robot {self.index} of Player {self.player.idx + 1} tried to move to a target cell with "
                         f"incompatible package at ({chr(ord('A') + new_x)}, {new_y + 1}). Move cancelled.")
                     return False
-                old_rect = self.rect.copy()
-                self.animate_move(old_rect, new_x, new_y, animation_steps, board)
+                self.animate_move(self.rect.copy(), new_x, new_y, animation_steps, board)
                 board.update_position(self.pos, (new_x, new_y))
                 self.pos = (new_x, new_y)
                 self.rect.topleft = ((new_x + 1) * DEFAULT_IMAGE_SIZE[0], (new_y + 1) * DEFAULT_IMAGE_SIZE[1])
@@ -106,6 +105,8 @@ class Robot:
         self.has_package = False
         cell.package = None
         return True
+
+    def increase_score(self, player, ):
 
     def RobotAnimator(self, screen):
         """Анимирует робота"""
