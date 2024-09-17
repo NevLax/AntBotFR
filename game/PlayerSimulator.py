@@ -1,6 +1,5 @@
 import pygame
 import logging
-from game.Board import Board
 from game.consts import DEFAULT_IMAGE_SIZE
 import time
 
@@ -14,7 +13,7 @@ class PlayerSimulator:
         self.players = players
         self.board = board
         self.screen = screen
-        self.game_manager = game_manager  # Добавим ссылку на GameManager
+        self.current_player = 0
         self.current_robot_index = 0
         self.current_robot_counts = [0] * len(players)
         self.total_robots_to_place = len(players) * players[0].num_robots
@@ -37,26 +36,26 @@ class PlayerSimulator:
                 if cell.package:
                     cell.package.visible = not placing_phase
 
-    def PlaceRobotAtPosition(self, cell_x, cell_y):
+    def place_robot_at_position(self, cell_x, cell_y):
         """Размещение робота: Размещение робота на доске, функция - в которой сейчас проблемы. Я не знаю,
         как их решать, если поставить if-условие размещения всех роботов - после размещения всех роботов игра встает
         и никуда не двигается. Видимо, дело в placing phase. А может и нет, слабо понимаю, что происходит"""
         if 0 <= cell_x < self.board.size and 0 <= cell_y < self.board.size:
-            current_player = self.players[self.game_manager.current_player]  # Используем current_player из GameManager
+            current_player = self.players[self.current_player]  # Используем current_player из GameManager
             if current_player.place_robot((cell_x, cell_y), self.board,
-                                          self.current_robot_counts[self.game_manager.current_player]):
+                                          self.current_robot_counts[self.current_player]):
                 logging.info(
-                    f"Player {self.game_manager.current_player + 1} placed robot at ({index_to_letter(cell_x)}, {cell_y + 1}).")
-                self.current_robot_counts[self.game_manager.current_player] += 1
+                    f"Player {self.current_player + 1} placed robot at ({index_to_letter(cell_x)}, {cell_y + 1}).")
+                self.current_robot_counts[self.current_player] += 1
                 self.robots_placed += 1
                 if self.robots_placed >= self.total_robots_to_place:
                     logging.info("Placing phase ended. All players have placed their robots.")
-                    self.game_manager.current_player = 0
+                    self.current_player = 0
                     self.current_robot_index = 0
                     self.placing_phase = False
                     self.update_package_visibility(self.placing_phase)
                     return True
-                self.game_manager.current_player = (self.game_manager.current_player + 1) % len(self.players)
+                self.current_player = (self.current_player + 1) % len(self.players)
                 self.current_robot_index = 0
                 time.sleep(0.2)  # Задержка в одну секунду
         return False
@@ -114,25 +113,25 @@ class PlayerSimulator:
             self.switch_to_next_player()
         elif event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4]:
             robot_num = event.key - pygame.K_1
-            if robot_num < len(self.players[self.game_manager.current_player].robots):
+            if robot_num < len(self.players[self.current_player].robots):
                 self.current_robot_index = robot_num
         elif event.key == pygame.K_UP:
-            self.players[self.game_manager.current_player].move_robot(self.current_robot_index, 'up', self.board)
+            self.players[self.current_player].move_robot(self.current_robot_index, 'up', self.board)
         elif event.key == pygame.K_DOWN:
-            self.players[self.game_manager.current_player].move_robot(self.current_robot_index, 'down', self.board)
+            self.players[self.current_player].move_robot(self.current_robot_index, 'down', self.board)
         elif event.key == pygame.K_LEFT:
-            self.players[self.game_manager.current_player].move_robot(self.current_robot_index, 'left', self.board)
+            self.players[self.current_player].move_robot(self.current_robot_index, 'left', self.board)
         elif event.key == pygame.K_RIGHT:
-            self.players[self.game_manager.current_player].move_robot(self.current_robot_index, 'right', self.board)
-        if self.players[self.game_manager.current_player].remaining_moves <= 0:
+            self.players[self.current_player].move_robot(self.current_robot_index, 'right', self.board)
+        if self.players[self.current_player].remaining_moves <= 0:
             self.switch_to_next_player()
 
     def switch_to_next_player(self):
         """Смена игрока: Переход хода к следующему игроку. Скорее всего какая-то беда здесь тоже может быть,
         но я за 15 часов так и не поняла"""
-        self.players[self.game_manager.current_player].reset_moves()
-        self.game_manager.current_player = (self.game_manager.current_player + 1) % len(self.players)
-        logging.info(f"Switched to player {self.game_manager.current_player + 1}.")
+        self.players[self.current_player].reset_moves()
+        self.current_player = (self.current_player + 1) % len(self.players)
+        logging.info(f"Switched to player {self.current_player + 1}.")
 
     def ScreenAnimator(self):
         """Анимация экрана"""
@@ -155,6 +154,3 @@ class PlayerSimulator:
         column = ord(pos_str[0].lower()) - ord('a')
         row = int(pos_str[1]) - 1
         return column, row
-
-    def ENDGAME(self):
-        logging.info("Player has ended the game")

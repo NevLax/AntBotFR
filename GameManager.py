@@ -36,7 +36,6 @@ class GameManager:
                           zip(self.config.players_info[1:], self.players) if player_type == 1]
         self.running = False
         self.placing_phase = self.simulator.placing_phase
-        self.current_player = 0  # Текущий игрок
         self.game_reset = False  # Флаг сброса игры
 
     def reset_game(self):
@@ -50,12 +49,8 @@ class GameManager:
         self.game_reset = True  # Устанавливаем флаг сброса игры
         self.running = False  # Убеждаемся, что текущий игровой цикл завершен
 
-        # Сбрасываем индекс текущего игрока здесь перед любой дальнейшей логикой
-        self.current_player = 0  # Указываем на первого игрока явно
-
         # Перезапуск игры
         self.__init__()
-        self.current_player = 0 # После сброса флага running заново запускаем init метод
         self.running = True
         self.placing_phase = True
         self.simulator.update_package_visibility(self.placing_phase)
@@ -69,12 +64,12 @@ class GameManager:
             elif event.type == pygame.MOUSEBUTTONDOWN and self.placing_phase:
                 cell_x = (event.pos[0] // DEFAULT_IMAGE_SIZE[0]) - 1
                 cell_y = (event.pos[1] // DEFAULT_IMAGE_SIZE[1]) - 1
-                success = self.simulator.PlaceRobotAtPosition(cell_x, cell_y)
+                success = self.simulator.place_robot_at_position(cell_x, cell_y)
                 if success:
                     self.placing_phase = not success
                     self.simulator.update_package_visibility(self.placing_phase)
             elif event.type == pygame.KEYDOWN and not self.placing_phase:
-                current_player = self.players[self.current_player]
+                current_player = self.players[self.simulator.current_player]
                 if current_player not in [auto_play.player for auto_play in self.auto_play]:
                     self.simulator.PressedKey(event)
 
@@ -94,14 +89,14 @@ class GameManager:
                     break  # Прерываем выполнение, если игра была сброшена
 
                 self.screen.fill((255, 255, 255))  # Очистить экран
-                current_player = self.players[self.simulator.game_manager.current_player]
+                current_player = self.players[self.simulator.current_player]
 
                 if current_player in [auto_play.player for auto_play in self.auto_play]:
                     autoplay = next(auto_play for auto_play in self.auto_play if auto_play.player == current_player)
                     random_pos = autoplay.get_random_white_cell_position()
                     if random_pos:
                         time.sleep(0.08)
-                        success = self.simulator.PlaceRobotAtPosition(random_pos[0], random_pos[1])
+                        success = self.simulator.place_robot_at_position(random_pos[0], random_pos[1])
                         if success:
                             pass  # Добавим задержку в одну секунду после установки робота
                     else:
@@ -116,7 +111,7 @@ class GameManager:
                 if self.game_reset:
                     break  # Прерываем выполнение, если игра была сброшена
 
-                current_player_idx = self.simulator.game_manager.current_player
+                current_player_idx = self.simulator.current_player
                 current_player = self.players[current_player_idx]
 
                 if current_player in [auto_play.player for auto_play in self.auto_play]:
@@ -197,14 +192,14 @@ class GameManager:
             self.simulator.update_package_visibility(self.placing_phase)
 
         if parts[0] == "GAMER":
-            self.simulator.game_manager.current_player = int(parts[1]) - 1
-            logging.info(f"Switched to Player {self.current_player + 1}.")
+            self.simulator.current_player = int(parts[1]) - 1
+            logging.info(f"Switched to Player {self.simulator.current_player + 1}.")
         elif parts[0] == "PUT" and parts[1] == "BOT":
-            self.simulator.execute_put_bot(self.simulator.game_manager.current_player, parts[2])
+            self.simulator.execute_put_bot(self.simulator.current_player, parts[2])
         elif parts[0] == "MOVE":
-            self.simulator.StartTurn(self.simulator.game_manager.current_player, parts[1])
+            self.simulator.StartTurn(self.simulator.current_player, parts[1])
         elif parts[0] == "END":
-            self.simulator.ENDGAME()
+            end_game()
             self.running = False
 
     def run(self):
@@ -217,3 +212,7 @@ class GameManager:
 if __name__ == "__main__":
     game_manager = GameManager()
     game_manager.run()
+
+
+def end_game():
+    logging.info("Player has ended the game")

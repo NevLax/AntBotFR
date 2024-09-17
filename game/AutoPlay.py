@@ -75,7 +75,7 @@ class AutoPlay:
         if 0 <= x < self.board.size and 0 <= y < self.board.size:
             target_cell = self.board.cells[y][x]
             # Проверяем, занята ли клетка другим роботом
-            if self.board.isOccupied(x, y):
+            if self.board.is_occupied(new_pos):
                 logging.debug(f"Cell at {new_pos} is occupied by another robot.")
                 return False
             # Проверяем, является ли клетка целевой

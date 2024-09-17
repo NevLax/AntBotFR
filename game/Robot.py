@@ -41,7 +41,7 @@ class Robot:
         else:
             return False
         if 0 <= new_x < board.size and 0 <= new_y < board.size:
-            if not board.isOccupied(new_x, new_y):
+            if not board.is_occupied((new_x, new_y)):
                 target_cell = board[new_y][new_x]
                 if target_cell.color == 'r':
                     logging.info(
@@ -54,7 +54,7 @@ class Robot:
                     return False
                 old_rect = self.rect.copy()
                 self.animate_move(old_rect, new_x, new_y, animation_steps, board)
-                board.UpdatePosition(self.pos, (new_x, new_y))
+                board.update_position(self.pos, (new_x, new_y))
                 self.pos = (new_x, new_y)
                 self.rect.topleft = ((new_x + 1) * DEFAULT_IMAGE_SIZE[0], (new_y + 1) * DEFAULT_IMAGE_SIZE[1])
                 logging.info(

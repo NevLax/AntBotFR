@@ -20,8 +20,8 @@ class Player:
 
     def place_robot(self, pos, board, robot_index):
         """Размещение робота: Устанавливает робота на доске"""
-        if not board.isOccupied(pos[0], pos[1]) and board[pos[0]][pos[1]].color == 'w':
-            board.UpdatePosition(None, pos)
+        if not board.is_occupied(pos) and board[pos[0]][pos[1]].color == 'w':
+            board.occupied(pos)
             robot = Robot(self.color, pos, robot_index + 1, self)
             self.robots.append(robot)
             return True
